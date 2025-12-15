@@ -1,0 +1,58 @@
+═══════════════════════════════════════════════════════════════
+  APLICACIÓN DE CÁLCULO VECTORIAL
+  Producto Escalar y Similitud Coseno
+═══════════════════════════════════════════════════════════════
+
+INSTRUCCIONES DE USO:
+
+1. INICIAR LA APLICACIÓN:
+   
+   Opción A - Script automático (Recomendado):
+   - Haz doble clic en "iniciar.bat"
+   - El script detectará automáticamente si tienes Node.js, Python o PHP
+   - Se abrirá automáticamente en tu navegador
+   
+   Opción B - Manual:
+   - Abre una terminal en esta carpeta
+   - Ejecuta uno de estos comandos:
+     * Con Node.js: npx http-server -p 8000 -o
+     * Con Python: python -m http.server 8000
+     * Con PHP: php -S localhost:8000
+   - Abre http://localhost:8000 en tu navegador
+
+2. USO DE LA APLICACIÓN:
+
+   - Selecciona la dimensión (2D o 3D)
+   - Edita los componentes de los vectores u y v
+   - Usa el slider para escalar el vector u (α)
+   - Observa cómo cambian los resultados en tiempo real
+   - La visualización se actualiza automáticamente
+
+3. FUNCIONALIDADES:
+
+   ✓ Cálculo de Producto Escalar (u⋅v)
+   ✓ Cálculo de Normas (||u||, ||v||)
+   ✓ Similitud Coseno (cos(θ)) con interpretación
+   ✓ Detección de Ortogonalidad (u⊥v)
+   ✓ Visualización 2D interactiva
+   ✓ Visualización 3D con controles de cámara
+   ✓ Proyección ortogonal cuando cos(θ) ≈ 0
+   ✓ Contexto educativo de IA (Recomendaciones y NLP)
+
+4. REQUISITOS:
+
+   - Navegador moderno (Chrome, Firefox, Edge, Safari)
+   - Opcional: Node.js, Python o PHP para servidor local
+   - Conexión a Internet (para cargar Three.js desde CDN)
+
+5. NOTAS:
+
+   - Si abres index.html directamente sin servidor, algunas
+     funcionalidades pueden no funcionar debido a restricciones
+     de seguridad del navegador (CORS)
+   - Se recomienda usar el script iniciar.bat o un servidor local
+
+═══════════════════════════════════════════════════════════════
+¡Disfruta aprendiendo cálculo vectorial!
+═══════════════════════════════════════════════════════════════
+

@@ -1,0 +1,25 @@
+{
+  "name": "calculo-vectorial",
+  "version": "1.0.0",
+  "description": "Aplicación web interactiva para el aprendizaje del Producto Escalar, Similitud Coseno y Ortogonalidad en el contexto de IA",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -o",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "vector",
+    "dot-product",
+    "cosine-similarity",
+    "orthogonality",
+    "visualization",
+    "education",
+    "ai",
+    "machine-learning"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
+

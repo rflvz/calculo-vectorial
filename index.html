@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto Escalar y Similitud Coseno - Aprendizaje Interactivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" 
+            onerror="console.warn('OrbitControls no disponible, usando controles básicos')"></script>
+</head>
+<body>
+    <header class="header">
+        <h1>Producto Escalar, Similitud Coseno y Ortogonalidad</h1>
+        <p class="subtitle">Aplicación Interactiva para Ingeniería en IA</p>
+    </header>
+
+    <main class="main-container">
+        <!-- Panel de Control de Entrada -->
+        <section class="controls-panel">
+            <h2>Parámetros de Entrada</h2>
+            
+            <div class="control-group">
+                <label for="dimension-select">Dimensión (N):</label>
+                <select id="dimension-select">
+                    <option value="2">2D</option>
+                    <option value="3" selected>3D</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Vector u:</label>
+                <div id="vector-u-inputs" class="vector-inputs"></div>
+            </div>
+
+            <div class="control-group">
+                <label>Vector v:</label>
+                <div id="vector-v-inputs" class="vector-inputs"></div>
+            </div>
+
+            <div class="control-group">
+                <label for="scale-slider">Factor de Escalado α:</label>
+                <div class="slider-container">
+                    <input type="range" id="scale-slider" min="0.1" max="3" step="0.1" value="1">
+                    <span id="scale-value">1.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <button id="reset-btn" class="btn-reset">Restablecer Valores</button>
+            </div>
+        </section>
+
+        <!-- Panel de Resultados Numéricos -->
+        <section class="results-panel">
+            <h2>Resultados en Tiempo Real</h2>
+            
+            <div class="result-item">
+                <label>Producto Escalar (u⋅v):</label>
+                <span id="dot-product" class="result-value">0</span>
+            </div>
+
+            <div class="result-item">
+                <label>Norma de u (||u||):</label>
+                <span id="norm-u" class="result-value">0</span>
+            </div>
+
+            <div class="result-item">
+                <label>Norma de v (||v||):</label>
+                <span id="norm-v" class="result-value">0</span>
+            </div>
+
+            <div class="result-item">
+                <label>Similitud Coseno (cos(θ)):</label>
+                <span id="cosine-similarity" class="result-value">0</span>
+                <span id="cosine-interpretation" class="interpretation"></span>
+            </div>
+
+            <div class="result-item">
+                <label>Ortogonalidad (u⊥v):</label>
+                <span id="orthogonality" class="result-value">No</span>
+            </div>
+        </section>
+
+        <!-- Visualización Geométrica -->
+        <section class="visualization-panel">
+            <h2>Visualización Geométrica</h2>
+            <div id="visualization-container">
+                <canvas id="canvas-2d" style="display: none;"></canvas>
+                <div id="canvas-3d" style="display: none;"></div>
+            </div>
+            <div id="visualization-info" class="visualization-info"></div>
+        </section>
+
+        <!-- Panel de Contexto de IA -->
+        <section class="ai-context-panel">
+            <h2>Contexto de Aplicación en IA</h2>
+            
+            <div class="ai-context-item">
+                <h3>Sistemas de Recomendación</h3>
+                <div id="recommendation-context" class="context-content">
+                    <p>La similitud coseno mide qué tan similares son los gustos entre usuarios. Un valor cercano a 1 indica gustos muy similares, mientras que un valor cercano a 0 indica gustos independientes.</p>
+                </div>
+            </div>
+
+            <div class="ai-context-item">
+                <h3>Procesamiento de Lenguaje Natural (NLP)</h3>
+                <div id="nlp-context" class="context-content">
+                    <p>En NLP, la similitud coseno entre embeddings de palabras o documentos mide la similitud semántica. Valores altos indican que los textos tienen significados similares.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script src="visualization.js"></script>
+</body>
+</html>
+
