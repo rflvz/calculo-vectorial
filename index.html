@@ -28,7 +28,22 @@
                 <select id="dimension-select">
                     <option value="2">2D</option>
                     <option value="3" selected>3D</option>
+                    <option value="4">4D</option>
+                    <option value="5">5D</option>
+                    <option value="6">6D</option>
+                    <option value="7">7D</option>
+                    <option value="8">8D</option>
                 </select>
+            </div>
+
+            <div class="control-group">
+                <label>Ejemplos de Embeddings:</label>
+                <div id="embedding-examples" class="embedding-examples-container">
+                    <!-- Botones generados dinámicamente -->
+                </div>
+                <div id="current-example-info" class="current-example-info" style="display: none;">
+                    <span id="current-example-name"></span>
+                </div>
             </div>
 
             <div class="control-group">
@@ -91,6 +106,8 @@
             <div id="visualization-container">
                 <canvas id="canvas-2d" style="display: none;"></canvas>
                 <div id="canvas-3d" style="display: none;"></div>
+                <div id="canvas-multi" style="display: none;"></div>
+                <div id="vector-tooltip" class="vector-tooltip"></div>
             </div>
             <div id="visualization-info" class="visualization-info"></div>
         </section>
@@ -115,6 +132,7 @@
         </section>
     </main>
 
+    <script src="embeddings-examples-real.js"></script>
     <script src="app.js"></script>
     <script src="visualization.js"></script>
 </body>

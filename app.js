@@ -93,6 +93,88 @@ class VectorCalculator {
         const clampedCosine = Math.max(-1, Math.min(1, cosine));
         return Math.acos(clampedCosine);
     }
+
+    /**
+     * Reduce vectores de N dimensiones a 3D usando PCA (Principal Component Analysis)
+     * Para 2 vectores, usa una aproximación basada en varianza por dimensión
+     * @param {number[]} u - Vector u de N dimensiones
+     * @param {number[]} v - Vector v de N dimensiones
+     * @returns {Object} {u3D: [number, number, number], v3D: [number, number, number], varianceExplained: number}
+     */
+    reduceTo3DWithPCA(u, v) {
+        if (u.length <= 3) {
+            // Si ya es 3D o menos, retornar tal cual
+            const u3D = [u[0] || 0, u[1] || 0, u[2] || 0];
+            const v3D = [v[0] || 0, v[1] || 0, v[2] || 0];
+            return { u3D, v3D, varianceExplained: 1.0 };
+        }
+
+        const n = u.length;
+        
+        // Calcular varianza y magnitud por dimensión
+        const dimensionStats = [];
+        for (let i = 0; i < n; i++) {
+            const uVal = u[i] || 0;
+            const vVal = v[i] || 0;
+            const mean = (uVal + vVal) / 2;
+            const variance = Math.pow(uVal - mean, 2) + Math.pow(vVal - mean, 2);
+            const magnitude = Math.abs(uVal) + Math.abs(vVal);
+            // Score combinado: varianza + magnitud (peso mayor a varianza)
+            const score = variance * 2 + magnitude;
+            dimensionStats.push({ 
+                index: i, 
+                variance, 
+                magnitude, 
+                score,
+                uVal,
+                vVal
+            });
+        }
+        
+        // Ordenar por score descendente (dimensiones más importantes primero)
+        dimensionStats.sort((a, b) => b.score - a.score);
+        
+        // Seleccionar las 3 dimensiones más importantes
+        const top3 = dimensionStats.slice(0, 3);
+        const indices = top3.map(d => d.index);
+        
+        // Asegurar que tenemos exactamente 3 índices
+        while (indices.length < 3 && indices.length < n) {
+            for (let i = 0; i < n && indices.length < 3; i++) {
+                if (!indices.includes(i)) {
+                    indices.push(i);
+                    break;
+                }
+            }
+        }
+        
+        // Proyectar usando las dimensiones seleccionadas
+        const u3D = [
+            u[indices[0] || 0] || 0,
+            u[indices[1] !== undefined ? indices[1] : (indices[0] || 0)] || 0,
+            u[indices[2] !== undefined ? indices[2] : (indices[0] || 0)] || 0
+        ];
+        const v3D = [
+            v[indices[0] || 0] || 0,
+            v[indices[1] !== undefined ? indices[1] : (indices[0] || 0)] || 0,
+            v[indices[2] !== undefined ? indices[2] : (indices[0] || 0)] || 0
+        ];
+        
+        // Calcular varianza explicada
+        const totalVariance = dimensionStats.reduce((sum, d) => sum + d.variance, 0);
+        const totalMagnitude = dimensionStats.reduce((sum, d) => sum + d.magnitude, 0);
+        const explainedVariance = totalVariance > this.epsilon 
+            ? top3.reduce((sum, d) => sum + d.variance, 0) / totalVariance 
+            : (totalMagnitude > this.epsilon 
+                ? top3.reduce((sum, d) => sum + d.magnitude, 0) / totalMagnitude 
+                : 0.5);
+        
+        return { 
+            u3D, 
+            v3D, 
+            varianceExplained: Math.min(1.0, Math.max(0.0, explainedVariance))
+        };
+    }
 }
 
 // Instancia global del calculador
@@ -103,7 +185,8 @@ const appState = {
     dimension: 3,
     vectorU: [2, 1, 0.5],
     vectorV: [0, 1.5, 2],
-    scale: 1.0
+    scale: 1.0,
+    currentExample: null // Almacena el ejemplo de embedding cargado actualmente
 };
 
 // Referencias a elementos del DOM
@@ -122,15 +205,45 @@ const elements = {
     orthogonality: null,
     recommendationContext: null,
     nlpContext: null,
-    visualizationInfo: null
+    visualizationInfo: null,
+    embeddingExamples: null,
+    currentExampleInfo: null,
+    currentExampleName: null
 };
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    initializeElements();
-    initializeControls();
-    generateVectorInputs();
-    updateAll();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:129',message:'DOMContentLoaded fired',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
+    try {
+        initializeElements();
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:135',message:'initializeElements completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
+        initializeControls();
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:139',message:'initializeControls completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
+        generateVectorInputs();
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:143',message:'generateVectorInputs completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
+        updateAll();
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:147',message:'updateAll completed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+    } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:150',message:'DOMContentLoaded ERROR',data:{error:error.message,stack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        console.error('Error en inicialización:', error);
+        throw error;
+    }
 });
 
 /**
@@ -152,6 +265,9 @@ function initializeElements() {
     elements.recommendationContext = document.getElementById('recommendation-context');
     elements.nlpContext = document.getElementById('nlp-context');
     elements.visualizationInfo = document.getElementById('visualization-info');
+    elements.embeddingExamples = document.getElementById('embedding-examples');
+    elements.currentExampleInfo = document.getElementById('current-example-info');
+    elements.currentExampleName = document.getElementById('current-example-name');
 }
 
 /**
@@ -161,13 +277,15 @@ function initializeControls() {
     // Selector de dimensión
     elements.dimensionSelect.addEventListener('change', (e) => {
         let dimension = parseInt(e.target.value);
-        if (dimension !== 2 && dimension !== 3) {
+        if (dimension < 2 || dimension > 10) {
             dimension = 2;
             e.target.value = '2';
         }
         appState.dimension = dimension;
+        appState.currentExample = null; // Limpiar ejemplo al cambiar dimensión
         resetVectorsToDefault();
         generateVectorInputs();
+        generateExampleButtons(); // Regenerar botones para la nueva dimensión
         updateAll();
     });
 
@@ -184,13 +302,21 @@ function initializeControls() {
 
     // Botón de reset
     elements.resetBtn.addEventListener('click', () => {
+        appState.currentExample = null; // Limpiar ejemplo cargado
+        if (elements.currentExampleInfo) {
+            elements.currentExampleInfo.style.display = 'none';
+        }
         resetVectorsToDefault();
         appState.scale = 1.0;
         elements.scaleSlider.value = 1.0;
         elements.scaleValue.textContent = '1.0';
         generateVectorInputs();
+        generateExampleButtons(); // Actualizar estado de botones
         updateAll();
     });
+    
+    // Generar botones de ejemplos iniciales
+    generateExampleButtons();
 }
 
 /**
@@ -298,13 +424,22 @@ function handleVectorInput(e) {
  * Restablece los vectores a valores por defecto
  */
 function resetVectorsToDefault() {
-    if (appState.dimension === 2) {
+    const dim = appState.dimension;
+    if (dim === 2) {
         appState.vectorU = [1, 0];
         appState.vectorV = [0, 1];
-    } else {
+    } else if (dim === 3) {
         // Valores predefinidos para 3D que se visualizan bien y no son paralelos
         appState.vectorU = [2, 1, 0.5];
         appState.vectorV = [0, 1.5, 2];
+    } else {
+        // Para dimensiones mayores, generar valores que no sean paralelos
+        appState.vectorU = [];
+        appState.vectorV = [];
+        for (let i = 0; i < dim; i++) {
+            appState.vectorU.push(Math.sin(i) * 2 + 1);
+            appState.vectorV.push(Math.cos(i) * 2 + 1);
+        }
     }
 }
 
@@ -314,7 +449,7 @@ function resetVectorsToDefault() {
 function updateAll() {
     try {
         // Validar dimensión
-        if (appState.dimension !== 2 && appState.dimension !== 3) {
+        if (appState.dimension < 2 || appState.dimension > 10) {
             console.error('Dimensión inválida:', appState.dimension);
             appState.dimension = 2;
             elements.dimensionSelect.value = '2';
@@ -528,6 +663,128 @@ function updateVisualizationInfo(angle, cosineSim, isOrtho) {
                  Observa que cos(θ) permanece constante mientras que u⋅v y ||u|| cambian.</em>`;
     }
     
+    // Advertencia sobre reducción dimensional si N > 3
+    if (appState.dimension > 3) {
+        const varianceExplained = window.pcaVarianceExplained || 0.5;
+        const variancePercent = (varianceExplained * 100).toFixed(1);
+        info += `<br><div style="background: rgba(245, 158, 11, 0.2); border-left: 3px solid #f59e0b; padding: 10px; margin-top: 10px; border-radius: 4px;">
+            <p style="color: #f59e0b; font-size: 0.9em; margin: 0; font-weight: 600;">
+                ⚠ Visualización reducida a 3D usando PCA
+            </p>
+            <p style="color: var(--text-secondary); font-size: 0.85em; margin: 5px 0 0 0; line-height: 1.5;">
+                El vector tiene ${appState.dimension} dimensiones. La visualización usa <strong>PCA (Principal Component Analysis)</strong> 
+                para reducir a 3 dimensiones, mostrando los 3 componentes principales que capturan la mayor varianza 
+                (${variancePercent}% de la varianza explicada). Los cálculos numéricos (producto escalar, norma, similitud coseno) 
+                usan todas las ${appState.dimension} dimensiones originales.
+            </p>
+        </div>`;
+    }
+    
     elements.visualizationInfo.innerHTML = info;
+}
+
+/**
+ * Carga un ejemplo de embedding predefinido
+ * @param {Object} example - Objeto con name, description, u, v
+ */
+function loadEmbeddingExample(example) {
+    if (!example || !example.u || !example.v) {
+        console.error('Ejemplo de embedding inválido:', example);
+        return;
+    }
+    
+    // Verificar que embeddingExamples esté definido
+    if (typeof embeddingExamples === 'undefined') {
+        console.error('embeddingExamples no está definido. Asegúrate de que embeddings-examples.js esté cargado.');
+        return;
+    }
+    
+    // Actualizar dimensión si es necesario
+    const requiredDimension = example.u.vector.length;
+    if (appState.dimension !== requiredDimension) {
+        appState.dimension = requiredDimension;
+        if (elements.dimensionSelect) {
+            elements.dimensionSelect.value = requiredDimension.toString();
+        }
+    }
+    
+    // Cargar vectores del ejemplo
+    appState.vectorU = [...example.u.vector];
+    appState.vectorV = [...example.v.vector];
+    appState.currentExample = example;
+    
+    // Actualizar UI
+    generateVectorInputs();
+    generateExampleButtons(); // Actualizar estado de botones
+    updateAll();
+    
+    // Mostrar información del ejemplo cargado
+    if (elements.currentExampleInfo && elements.currentExampleName) {
+        elements.currentExampleName.innerHTML = `<strong>Ejemplo cargado:</strong> ${example.name} - ${example.description}`;
+        elements.currentExampleInfo.style.display = 'block';
+    }
+}
+
+/**
+ * Genera los botones de ejemplos de embeddings según la dimensión actual
+ */
+function generateExampleButtons() {
+    if (!elements.embeddingExamples) {
+        return;
+    }
+    
+    // Verificar que embeddingExamples esté definido
+    if (typeof embeddingExamples === 'undefined') {
+        // Si no está definido, mostrar mensaje
+        elements.embeddingExamples.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9em; font-style: italic; padding: 10px;">Cargando ejemplos...</p>';
+        return;
+    }
+    
+    // Limpiar contenedor
+    elements.embeddingExamples.innerHTML = '';
+    
+    // Obtener ejemplos para la dimensión actual
+    const dimensionKey = `${appState.dimension}D`;
+    const examples = embeddingExamples[dimensionKey] || [];
+    
+    if (examples.length === 0) {
+        const noExamplesMsg = document.createElement('p');
+        noExamplesMsg.textContent = 'No hay ejemplos disponibles para esta dimensión.';
+        noExamplesMsg.style.cssText = 'color: var(--text-muted); font-size: 0.9em; font-style: italic; padding: 10px;';
+        elements.embeddingExamples.appendChild(noExamplesMsg);
+        return;
+    }
+    
+    // Crear botones para cada ejemplo
+    examples.forEach((example, index) => {
+        const button = document.createElement('button');
+        button.className = 'example-btn';
+        button.type = 'button';
+        button.dataset.exampleIndex = index;
+        
+        // Marcar como activo si es el ejemplo actual
+        if (appState.currentExample && appState.currentExample.name === example.name) {
+            button.classList.add('active');
+        }
+        
+        // Contenido del botón
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'example-btn-name';
+        nameSpan.textContent = example.name;
+        
+        const descSpan = document.createElement('span');
+        descSpan.className = 'example-btn-description';
+        descSpan.textContent = example.description;
+        
+        button.appendChild(nameSpan);
+        button.appendChild(descSpan);
+        
+        // Event listener
+        button.addEventListener('click', () => {
+            loadEmbeddingExample(example);
+        });
+        
+        elements.embeddingExamples.appendChild(button);
+    });
 }
 
