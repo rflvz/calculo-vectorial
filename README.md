@@ -36,6 +36,11 @@ Aplicación web interactiva y parametrizable para el aprendizaje del Producto Es
 ## Instalación y Uso
 
 1. Clonar o descargar el repositorio
+   ```bash
+   git clone https://github.com/tu-usuario/calculo-vectorial.git
+   cd calculo-vectorial
+   ```
+
 2. Abrir `index.html` en un navegador web moderno
 3. No se requiere servidor local, pero se recomienda usar uno para evitar problemas de CORS
 
@@ -96,6 +101,22 @@ calculo-vectorial/
 - OrbitControls es opcional; si no está disponible, se usan controles básicos
 - Validación de inputs para prevenir errores
 - Manejo de casos especiales (vectores cero, división por cero)
+
+## Subir a GitHub
+
+Si deseas subir este proyecto a GitHub:
+
+1. **Opción A - Script automático (Windows):**
+   - Ejecuta `subir-github.bat`
+   - Sigue las instrucciones en pantalla
+
+2. **Opción B - Manual:**
+   ```bash
+   # Crear repositorio en GitHub primero (sin inicializar)
+   git remote add origin https://github.com/tu-usuario/tu-repo.git
+   git branch -M main
+   git push -u origin main
+   ```
 
 ## Licencia
 
