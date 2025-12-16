@@ -1094,6 +1094,9 @@ function updateVisualization(scaledU, v, angle, projection, isOrthogonal) {
             const scaledU3 = [scaledU[0] || 0, scaledU[1] || 0, scaledU[2] || 0];
             const proj3 = projection ? [projection[0] || 0, projection[1] || 0, projection[2] || 0] : [0, 0, 0];
             
+            // Hacer visualization3D disponible globalmente
+            window.visualization3D = visualization3D;
+            
             // #region agent log
             fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'visualization.js:977',message:'Calling visualization3D.update',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
             // #endregion
@@ -1143,6 +1146,9 @@ function updateVisualization(scaledU, v, angle, projection, isOrthogonal) {
         }
         
         if (visualization3D) {
+            // Hacer visualization3D disponible globalmente
+            window.visualization3D = visualization3D;
+            
             // Reducir a 3 dimensiones usando PCA
             // #region agent log
             fetch('http://127.0.0.1:7243/ingest/299c829d-32d1-4179-83c2-08c2e1dd354d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'visualization.js:1133',message:'Starting PCA reduction',data:{originalDimension:dimension,uLength:u.length,vLength:v.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});

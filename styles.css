@@ -101,11 +101,13 @@ body {
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     gap: 24px;
     grid-template-areas:
         "controls results"
         "visualization visualization"
+        "animations animations"
+        "calculation calculation"
         "ai-context ai-context";
 }
 
@@ -113,6 +115,8 @@ body {
 .controls-panel,
 .results-panel,
 .visualization-panel,
+.animations-panel,
+.calculation-panel,
 .ai-context-panel {
     background: var(--bg-card);
     border-radius: var(--border-radius-lg);
@@ -126,6 +130,8 @@ body {
 .controls-panel:hover,
 .results-panel:hover,
 .visualization-panel:hover,
+.animations-panel:hover,
+.calculation-panel:hover,
 .ai-context-panel:hover {
     box-shadow: var(--shadow-xl);
     border-color: var(--border-hover);
@@ -142,6 +148,18 @@ body {
 
 .visualization-panel {
     grid-area: visualization;
+}
+
+.animations-panel {
+    grid-area: animations;
+}
+
+.calculation-panel {
+    grid-area: calculation;
+}
+
+.animations-panel {
+    grid-area: animations;
 }
 
 .ai-context-panel {
@@ -731,6 +749,481 @@ select option {
 }
 
 /* Responsive Design */
+/* Estilos para cálculo paso a paso */
+.step-by-step-content {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 0.98em;
+}
+
+.calculation-step {
+    margin-bottom: 28px;
+    padding: 24px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+}
+
+.calculation-step:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(6px);
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow);
+}
+
+.calculation-step h3 {
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.3em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calculation-step h3::before {
+    content: '📐';
+    font-size: 1.2em;
+}
+
+.step-formula {
+    background: var(--bg-primary);
+    padding: 16px 20px;
+    border-radius: var(--border-radius);
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 1.1em;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.step-breakdown {
+    margin: 16px 0;
+    padding: 16px;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: var(--border-radius);
+    border-left: 3px solid var(--primary-color);
+}
+
+.step-breakdown-item {
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.step-breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.step-breakdown-item .step-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+.step-breakdown-item .step-value {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.step-result {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--accent-color);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.step-explanation {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--warning-color);
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.btn-visualize {
+    margin-top: 16px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    box-shadow: var(--shadow);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-visualize .btn-icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.btn-visualize:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    background: linear-gradient(135deg, var(--primary-hover), var(--secondary-hover));
+}
+
+.btn-visualize:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow);
+}
+
+.vector-display {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--primary-color);
+    margin: 0 4px;
+}
+
+/* Estilos para animaciones visuales */
+.animations-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.animation-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.animation-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+.animation-card h3 {
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    font-size: 1.2em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.animation-card h3::before {
+    content: '🎬';
+    font-size: 1.3em;
+}
+
+.animation-svg-container {
+    width: 100%;
+    height: 300px;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: visible;
+}
+
+.animation-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.animation-controls {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.animation-btn {
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+}
+
+.animation-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.animation-btn:active {
+    transform: translateY(0);
+}
+
+.animation-btn.secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.animation-btn.secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary-color);
+}
+
+/* Estilos mejorados para botones de animación */
+.btn-animation {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    box-shadow: var(--shadow);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-animation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-animation:hover::before {
+    left: 100%;
+}
+
+.btn-animation:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+}
+
+.btn-animation:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow);
+}
+
+.btn-animation:focus {
+    outline: none;
+    box-shadow: var(--shadow-lg), 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+/* Estilos para el selector de animación mejorado */
+.animation-select {
+    padding: 12px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.95em;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    min-width: 220px;
+    box-shadow: var(--shadow-sm);
+}
+
+.animation-select:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-input-focus);
+    box-shadow: var(--shadow);
+}
+
+.animation-select:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), var(--shadow);
+    background: var(--bg-input-focus);
+}
+
+.animation-select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 8px;
+}
+
+/* Estilos para el slider de velocidad */
+.animation-controls input[type="range"] {
+    flex: 1;
+    max-width: 200px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.animation-controls input[type="range"]:hover {
+    background: var(--border-hover);
+}
+
+.animation-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.animation-controls input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+}
+
+.animation-controls input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    cursor: pointer;
+    border: none;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.animation-controls input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+}
+
+/* Estilos para labels en controles de animación */
+.animation-controls label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.95em;
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
+.animation-info {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--primary-color);
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.animation-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-left: 12px;
+}
+
+.animation-status.playing {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--accent-color);
+}
+
+.animation-status.paused {
+    background: rgba(148, 163, 184, 0.2);
+    color: var(--text-muted);
+}
+
+/* Animaciones SVG */
+@keyframes drawLine {
+    from {
+        stroke-dashoffset: 1000;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+.animated-line {
+    animation: drawLine 2s ease-in-out;
+}
+
+.animated-circle {
+    animation: fadeIn 0.5s ease-in, pulse 2s ease-in-out infinite;
+}
+
+.animated-text {
+    animation: fadeIn 0.5s ease-in;
+}
+
 @media (max-width: 1024px) {
     .main-container {
         grid-template-columns: 1fr;
@@ -738,7 +1231,13 @@ select option {
             "controls"
             "results"
             "visualization"
+            "animations"
+            "calculation"
             "ai-context";
+    }
+    
+    .animations-container {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -763,6 +1262,8 @@ select option {
     .controls-panel,
     .results-panel,
     .visualization-panel,
+    .animations-panel,
+    .calculation-panel,
     .ai-context-panel {
         padding: 20px;
     }

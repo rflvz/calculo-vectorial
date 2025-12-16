@@ -268,6 +268,8 @@ function initializeElements() {
     elements.embeddingExamples = document.getElementById('embedding-examples');
     elements.currentExampleInfo = document.getElementById('current-example-info');
     elements.currentExampleName = document.getElementById('current-example-name');
+    elements.stepByStepCalculation = document.getElementById('step-by-step-calculation');
+    elements.visualAnimationsContainer = document.getElementById('visual-animations-container');
 }
 
 /**
@@ -526,6 +528,9 @@ function updateAll() {
 
         // Actualizar información de visualización
         updateVisualizationInfo(angle, cosineSim, isOrtho);
+
+        // Actualizar cálculo paso a paso
+        updateStepByStepCalculation(scaledU, appState.vectorV, dotProduct, normU, normV, cosineSim, isOrtho);
 
     } catch (error) {
         console.error('Error en updateAll:', error);
@@ -786,5 +791,792 @@ function generateExampleButtons() {
         
         elements.embeddingExamples.appendChild(button);
     });
+}
+
+/**
+ * Actualiza la sección de cálculo paso a paso
+ */
+function updateStepByStepCalculation(u, v, dotProduct, normU, normV, cosineSim, isOrtho) {
+    if (!elements.stepByStepCalculation) return;
+
+    const dim = u.length;
+    let html = '';
+
+    // 1. Producto Escalar
+    html += '<div class="calculation-step">';
+    html += '<h3>1. Producto Escalar (u⋅v)</h3>';
+    html += '<div class="step-formula">u⋅v = Σ(uᵢ × vᵢ) = u₁×v₁ + u₂×v₂ + ... + uₙ×vₙ</div>';
+    
+    html += '<div class="step-breakdown">';
+    let dotSum = 0;
+    for (let i = 0; i < dim; i++) {
+        const product = u[i] * v[i];
+        dotSum += product;
+        const sign = i < dim - 1 ? ' + ' : '';
+        html += `<div class="step-breakdown-item">`;
+        html += `<span class="step-label">u${i + 1} × v${i + 1}:</span>`;
+        html += `<span class="step-value">${u[i].toFixed(4)} × ${v[i].toFixed(4)} = ${product.toFixed(4)}</span>`;
+        html += `</div>`;
+    }
+    html += '</div>';
+    
+    html += '<div class="step-result">u⋅v = ' + dotProduct.toFixed(6) + '</div>';
+    html += '<div class="step-explanation">El producto escalar mide qué tan "alineados" están los vectores. Un valor positivo indica que apuntan en direcciones similares, negativo indica direcciones opuestas, y cero indica ortogonalidad.</div>';
+    html += '<button class="btn-visualize" onclick="showVisualization(\'dot-product\')">';
+    html += '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    html += '<span>Ver Animación 3D</span>';
+    html += '</button>';
+    html += '</div>';
+
+    // 2. Norma de u
+    html += '<div class="calculation-step">';
+    html += '<h3>2. Norma de u (||u||)</h3>';
+    html += '<div class="step-formula">||u|| = √(u₁² + u₂² + ... + uₙ²)</div>';
+    
+    html += '<div class="step-breakdown">';
+    let normUSum = 0;
+    for (let i = 0; i < dim; i++) {
+        const squared = u[i] * u[i];
+        normUSum += squared;
+        html += `<div class="step-breakdown-item">`;
+        html += `<span class="step-label">u${i + 1}²:</span>`;
+        html += `<span class="step-value">${u[i].toFixed(4)}² = ${squared.toFixed(4)}</span>`;
+        html += `</div>`;
+    }
+    html += '</div>';
+    
+    html += '<div class="step-result">||u|| = √(' + normUSum.toFixed(6) + ') = ' + normU.toFixed(6) + '</div>';
+    html += '<div class="step-explanation">La norma (o magnitud) de un vector representa su "longitud" en el espacio. Es la distancia desde el origen hasta el punto que representa el vector.</div>';
+    html += '<button class="btn-visualize" onclick="showVisualization(\'norm-u\')">';
+    html += '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    html += '<span>Ver Animación 3D</span>';
+    html += '</button>';
+    html += '</div>';
+
+    // 3. Norma de v
+    html += '<div class="calculation-step">';
+    html += '<h3>3. Norma de v (||v||)</h3>';
+    html += '<div class="step-formula">||v|| = √(v₁² + v₂² + ... + vₙ²)</div>';
+    
+    html += '<div class="step-breakdown">';
+    let normVSum = 0;
+    for (let i = 0; i < dim; i++) {
+        const squared = v[i] * v[i];
+        normVSum += squared;
+        html += `<div class="step-breakdown-item">`;
+        html += `<span class="step-label">v${i + 1}²:</span>`;
+        html += `<span class="step-value">${v[i].toFixed(4)}² = ${squared.toFixed(4)}</span>`;
+        html += `</div>`;
+    }
+    html += '</div>';
+    
+    html += '<div class="step-result">||v|| = √(' + normVSum.toFixed(6) + ') = ' + normV.toFixed(6) + '</div>';
+    html += '<div class="step-explanation">Similar a la norma de u, representa la magnitud del vector v.</div>';
+    html += '<button class="btn-visualize" onclick="showVisualization(\'norm-v\')">';
+    html += '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    html += '<span>Ver Animación 3D</span>';
+    html += '</button>';
+    html += '</div>';
+
+    // 4. Similitud Coseno
+    html += '<div class="calculation-step">';
+    html += '<h3>4. Similitud Coseno (cos(θ))</h3>';
+    html += '<div class="step-formula">cos(θ) = (u⋅v) / (||u|| × ||v||)</div>';
+    
+    html += '<div class="step-breakdown">';
+    html += `<div class="step-breakdown-item">`;
+    html += `<span class="step-label">u⋅v:</span>`;
+    html += `<span class="step-value">${dotProduct.toFixed(6)}</span>`;
+    html += `</div>`;
+    html += `<div class="step-breakdown-item">`;
+    html += `<span class="step-label">||u|| × ||v||:</span>`;
+    html += `<span class="step-value">${normU.toFixed(6)} × ${normV.toFixed(6)} = ${(normU * normV).toFixed(6)}</span>`;
+    html += `</div>`;
+    html += '</div>';
+    
+    html += '<div class="step-result">cos(θ) = ' + dotProduct.toFixed(6) + ' / ' + (normU * normV).toFixed(6) + ' = ' + cosineSim.toFixed(6) + '</div>';
+    
+    let cosineExplanation = '';
+    if (Math.abs(cosineSim - 1) < 0.01) {
+        cosineExplanation = 'Los vectores son paralelos (misma dirección). En IA, esto indica que los embeddings representan conceptos idénticos o muy similares.';
+    } else if (Math.abs(cosineSim) < 0.01) {
+        cosineExplanation = 'Los vectores son ortogonales (perpendiculares). En IA, esto indica que los embeddings representan conceptos independientes o no relacionados.';
+    } else if (Math.abs(cosineSim + 1) < 0.01) {
+        cosineExplanation = 'Los vectores son opuestos (dirección contraria). En IA, esto puede indicar conceptos antónimos o contradictorios.';
+    } else if (cosineSim > 0.7) {
+        cosineExplanation = 'Alta similitud. Los vectores apuntan en direcciones muy similares. En embeddings de palabras, esto indica alta similitud semántica.';
+    } else if (cosineSim < -0.7) {
+        cosineExplanation = 'Baja similitud (negativa). Los vectores apuntan en direcciones opuestas. Puede indicar conceptos antónimos.';
+    } else if (Math.abs(cosineSim) < 0.3) {
+        cosineExplanation = 'Baja similitud. Los vectores son casi ortogonales, indicando conceptos independientes o poco relacionados.';
+    } else {
+        cosineExplanation = 'Similitud moderada. Los vectores tienen cierta relación pero no son ni paralelos ni ortogonales.';
+    }
+    
+    html += '<div class="step-explanation">' + cosineExplanation + '</div>';
+    html += '<button class="btn-visualize" onclick="showVisualization(\'cosine\')">';
+    html += '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    html += '<span>Ver Animación 3D</span>';
+    html += '</button>';
+    html += '</div>';
+
+    // 5. Ortogonalidad
+    html += '<div class="calculation-step">';
+    html += '<h3>5. Ortogonalidad (u⊥v)</h3>';
+    html += '<div class="step-formula">u⊥v si y solo si u⋅v = 0</div>';
+    
+    html += '<div class="step-breakdown">';
+    html += `<div class="step-breakdown-item">`;
+    html += `<span class="step-label">u⋅v:</span>`;
+    html += `<span class="step-value">${dotProduct.toFixed(6)}</span>`;
+    html += `</div>`;
+    html += `<div class="step-breakdown-item">`;
+    html += `<span class="step-label">|u⋅v| < ε (ε = 0.000001):</span>`;
+    html += `<span class="step-value">${Math.abs(dotProduct).toFixed(6)} ${isOrtho ? '< ' : '≥ '} 0.000001</span>`;
+    html += `</div>`;
+    html += '</div>';
+    
+    html += '<div class="step-result">u⊥v: ' + (isOrtho ? 'Sí ✓' : 'No ✗') + '</div>';
+    html += '<div class="step-explanation">';
+    if (isOrtho) {
+        html += 'Los vectores son ortogonales. Esto significa que son independientes y no hay correlación lineal entre ellos. En el contexto de embeddings, esto indica que representan aspectos completamente diferentes de los datos.';
+    } else {
+        html += 'Los vectores no son ortogonales. Hay cierta correlación lineal entre ellos, lo que indica que comparten alguna relación en el espacio vectorial.';
+    }
+    html += '</div>';
+    html += '<button class="btn-visualize" onclick="showVisualization(\'orthogonal\')">';
+    html += '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+    html += '<span>Ver Animación 3D</span>';
+    html += '</button>';
+    html += '</div>';
+
+    elements.stepByStepCalculation.innerHTML = html;
+}
+
+/**
+ * Muestra visualización 3D interactiva para un cálculo específico
+ */
+function showVisualization(calculationType) {
+    // Detener animación anterior si existe
+    if (window.animationInterval) {
+        clearInterval(window.animationInterval);
+        window.animationInterval = null;
+    }
+    
+    // Cambiar a dimensión 3D si no está ya
+    if (appState.dimension !== 3) {
+        appState.dimension = 3;
+        if (elements.dimensionSelect) {
+            elements.dimensionSelect.value = '3';
+        }
+        resetVectorsToDefault();
+        generateVectorInputs();
+        generateExampleButtons();
+    }
+    
+    // Asegurar que los vectores tengan 3 dimensiones
+    while (appState.vectorU.length < 3) {
+        appState.vectorU.push(0);
+    }
+    while (appState.vectorV.length < 3) {
+        appState.vectorV.push(0);
+    }
+    appState.vectorU = appState.vectorU.slice(0, 3);
+    appState.vectorV = appState.vectorV.slice(0, 3);
+    
+    // Actualizar visualización
+    updateAll();
+    
+    // Hacer scroll a la visualización
+    const visualizationPanel = document.querySelector('.visualization-panel');
+    if (visualizationPanel) {
+        visualizationPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Iniciar animación según el tipo de cálculo
+    setTimeout(() => {
+        if (window.visualization3D) {
+            highlightCalculation(calculationType);
+        }
+    }, 500);
+}
+
+/**
+ * Resalta visualmente un cálculo específico en la visualización 3D con animación
+ */
+function highlightCalculation(calculationType) {
+    if (!window.visualization3D) return;
+    const visualization3D = window.visualization3D;
+    
+    // Limpiar animaciones anteriores
+    if (window.animationInterval) {
+        clearInterval(window.animationInterval);
+        window.animationInterval = null;
+    }
+    
+    if (window.highlightObjects) {
+        window.highlightObjects.forEach(obj => {
+            if (obj && obj.parent) {
+                visualization3D.scene.remove(obj);
+            }
+        });
+    }
+    window.highlightObjects = [];
+    
+    const u = appState.vectorU.slice(0, 3);
+    const v = appState.vectorV.slice(0, 3);
+    const scaledU = calculator.scale(u, appState.scale);
+    
+    // Iniciar animación según el tipo de cálculo
+    switch (calculationType) {
+        case 'dot-product':
+            animateDotProduct(u, v, scaledU, visualization3D);
+            break;
+        case 'norm-u':
+            animateNorm(u, scaledU, '#6366f1', 'u', visualization3D);
+            break;
+        case 'norm-v':
+            animateNorm(v, v, '#ec4899', 'v', visualization3D);
+            break;
+        case 'cosine':
+            animateCosineSimilarity(u, v, scaledU, visualization3D);
+            break;
+        case 'orthogonal':
+            animateOrthogonality(u, v, scaledU, visualization3D);
+            break;
+    }
+}
+
+/**
+ * Anima el cálculo del producto escalar paso a paso
+ */
+function animateDotProduct(u, v, scaledU, visualization3D) {
+    const dotProduct = calculator.dotProduct(scaledU, v);
+    let step = 0;
+    const totalSteps = 3;
+    
+    // Componentes para mostrar
+    const components = [];
+    for (let i = 0; i < Math.min(scaledU.length, v.length); i++) {
+        components.push({
+            index: i,
+            uVal: scaledU[i] || 0,
+            vVal: v[i] || 0,
+            product: (scaledU[i] || 0) * (v[i] || 0)
+        });
+    }
+    
+    const animate = () => {
+        // Limpiar objetos anteriores
+        if (window.highlightObjects) {
+            window.highlightObjects.forEach(obj => {
+                if (obj && obj.parent) {
+                    visualization3D.scene.remove(obj);
+                }
+            });
+        }
+        window.highlightObjects = [];
+        
+        if (step === 0) {
+            // Paso 1: Mostrar vectores con resaltado
+            const uEnd = new THREE.Vector3(scaledU[0] || 0, scaledU[1] || 0, scaledU[2] || 0);
+            const vEnd = new THREE.Vector3(v[0] || 0, v[1] || 0, v[2] || 0);
+            
+            // Esferas pulsantes en los extremos
+            const pulse = Math.sin(Date.now() * 0.005) * 0.05 + 0.15;
+            const uSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0x6366f1, emissive: 0x6366f1, emissiveIntensity: 0.8 })
+            );
+            uSphere.position.copy(uEnd);
+            visualization3D.scene.add(uSphere);
+            window.highlightObjects.push(uSphere);
+            
+            const vSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0xec4899, emissive: 0xec4899, emissiveIntensity: 0.8 })
+            );
+            vSphere.position.copy(vEnd);
+            visualization3D.scene.add(vSphere);
+            window.highlightObjects.push(vSphere);
+            
+            showCalculationText('Paso 1: Vectores u y v');
+            
+            if (Date.now() - (window.animationStartTime || 0) > 2000) {
+                step = 1;
+                window.animationStartTime = Date.now();
+            }
+        } else if (step === 1) {
+            // Paso 2: Mostrar multiplicación componente por componente
+            const currentComponent = components[Math.floor((Date.now() - window.animationStartTime) / 1000) % components.length];
+            
+            // Resaltar componente actual
+            const axis = ['x', 'y', 'z'][currentComponent.index];
+            const uPos = new THREE.Vector3();
+            const vPos = new THREE.Vector3();
+            uPos.setComponent(currentComponent.index, scaledU[currentComponent.index] || 0);
+            vPos.setComponent(currentComponent.index, v[currentComponent.index] || 0);
+            
+            // Líneas desde el origen mostrando los componentes
+            const uLine = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), uPos]),
+                new THREE.LineBasicMaterial({ color: 0x6366f1, linewidth: 4 })
+            );
+            visualization3D.scene.add(uLine);
+            window.highlightObjects.push(uLine);
+            
+            const vLine = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), vPos]),
+                new THREE.LineBasicMaterial({ color: 0xec4899, linewidth: 4 })
+            );
+            visualization3D.scene.add(vLine);
+            window.highlightObjects.push(vLine);
+            
+            showCalculationText(`u${currentComponent.index + 1} × v${currentComponent.index + 1} = ${currentComponent.uVal.toFixed(2)} × ${currentComponent.vVal.toFixed(2)} = ${currentComponent.product.toFixed(4)}`);
+            
+            if (Date.now() - window.animationStartTime > components.length * 2000) {
+                step = 2;
+                window.animationStartTime = Date.now();
+            }
+        } else if (step === 2) {
+            // Paso 3: Mostrar suma y resultado final
+            let sum = 0;
+            const sumText = components.map((c, i) => {
+                sum += c.product;
+                return `${c.product.toFixed(4)}`;
+            }).join(' + ');
+            
+            showCalculationText(`u⋅v = ${sumText} = ${dotProduct.toFixed(4)}`);
+            
+            // Mostrar todos los componentes resaltados
+            components.forEach((comp, idx) => {
+                const pos = new THREE.Vector3();
+                pos.setComponent(comp.index, comp.product);
+                const sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.1, 16, 16),
+                    new THREE.MeshPhongMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.6 })
+                );
+                sphere.position.copy(pos);
+                visualization3D.scene.add(sphere);
+                window.highlightObjects.push(sphere);
+            });
+            
+            if (Date.now() - window.animationStartTime > 3000) {
+                step = 0;
+                window.animationStartTime = Date.now();
+            }
+        }
+        
+        visualization3D.render();
+        window.animationInterval = setTimeout(animate, 50);
+    };
+    
+    window.animationStartTime = Date.now();
+    animate();
+}
+
+/**
+ * Anima el cálculo de la norma de un vector
+ */
+function animateNorm(vector, actualVector, color, label, visualization3D) {
+    const norm = calculator.norm(actualVector);
+    const end = new THREE.Vector3(actualVector[0] || 0, actualVector[1] || 0, actualVector[2] || 0);
+    let step = 0;
+    
+    // Calcular componentes al cuadrado
+    const squaredComponents = [];
+    let sum = 0;
+    for (let i = 0; i < actualVector.length; i++) {
+        const val = actualVector[i] || 0;
+        const squared = val * val;
+        sum += squared;
+        squaredComponents.push({ index: i, value: val, squared: squared, sum: sum });
+    }
+    
+    const animate = () => {
+        if (window.highlightObjects) {
+            window.highlightObjects.forEach(obj => {
+                if (obj && obj.parent) {
+                    visualization3D.scene.remove(obj);
+                }
+            });
+        }
+        window.highlightObjects = [];
+        
+        if (step === 0) {
+            // Paso 1: Mostrar vector y sus componentes
+            const time = (Date.now() - (window.animationStartTime || 0)) / 1000;
+            const currentIdx = Math.floor(time) % squaredComponents.length;
+            const current = squaredComponents[currentIdx];
+            
+            // Mostrar componente actual
+            const compPos = new THREE.Vector3();
+            compPos.setComponent(current.index, current.value);
+            const compLine = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), compPos]),
+                new THREE.LineBasicMaterial({ color: parseInt(color.replace('#', '0x')), linewidth: 5 })
+            );
+            visualization3D.scene.add(compLine);
+            window.highlightObjects.push(compLine);
+            
+            // Esfera pulsante en el componente
+            const pulse = Math.sin(time * 5) * 0.05 + 0.12;
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: parseInt(color.replace('#', '0x')), emissive: parseInt(color.replace('#', '0x')), emissiveIntensity: 0.8 })
+            );
+            sphere.position.copy(compPos);
+            visualization3D.scene.add(sphere);
+            window.highlightObjects.push(sphere);
+            
+            showCalculationText(`${label}${current.index + 1}² = ${current.value.toFixed(2)}² = ${current.squared.toFixed(4)}`);
+            
+            if (time > squaredComponents.length * 1.5) {
+                step = 1;
+                window.animationStartTime = Date.now();
+            }
+        } else if (step === 1) {
+            // Paso 2: Mostrar suma de cuadrados
+            const sumText = squaredComponents.map(c => c.squared.toFixed(4)).join(' + ');
+            showCalculationText(`||${label}||² = ${sumText} = ${sum.toFixed(4)}`);
+            
+            // Mostrar todos los componentes
+            squaredComponents.forEach(comp => {
+                const pos = new THREE.Vector3();
+                pos.setComponent(comp.index, comp.value);
+                const sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.08, 16, 16),
+                    new THREE.MeshPhongMaterial({ color: parseInt(color.replace('#', '0x')), emissive: parseInt(color.replace('#', '0x')), emissiveIntensity: 0.5 })
+                );
+                sphere.position.copy(pos);
+                visualization3D.scene.add(sphere);
+                window.highlightObjects.push(sphere);
+            });
+            
+            if (Date.now() - window.animationStartTime > 2000) {
+                step = 2;
+                window.animationStartTime = Date.now();
+            }
+        } else {
+            // Paso 3: Mostrar raíz cuadrada y resultado final
+            const progress = Math.min((Date.now() - window.animationStartTime) / 2000, 1);
+            const animatedNorm = progress * norm;
+            
+            // Línea animada desde origen hasta el extremo
+            const animatedEnd = end.clone().normalize().multiplyScalar(animatedNorm);
+            const normLine = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), animatedEnd]),
+                new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 4 })
+            );
+            visualization3D.scene.add(normLine);
+            window.highlightObjects.push(normLine);
+            
+            // Esfera en el extremo animado
+            const sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(0.15, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.8 })
+            );
+            sphere.position.copy(animatedEnd);
+            visualization3D.scene.add(sphere);
+            window.highlightObjects.push(sphere);
+            
+            showCalculationText(`||${label}|| = √${sum.toFixed(4)} = ${norm.toFixed(4)}`);
+            
+            if (progress >= 1) {
+                step = 0;
+                window.animationStartTime = Date.now();
+            }
+        }
+        
+        visualization3D.render();
+        window.animationInterval = setTimeout(animate, 50);
+    };
+    
+    window.animationStartTime = Date.now();
+    animate();
+}
+
+/**
+ * Anima el cálculo de la similitud coseno
+ */
+function animateCosineSimilarity(u, v, scaledU, visualization3D) {
+    const angle = calculator.angle(scaledU, v);
+    const cosineSim = calculator.cosineSimilarity(scaledU, v);
+    const dotProduct = calculator.dotProduct(scaledU, v);
+    const normU = calculator.norm(scaledU);
+    const normV = calculator.norm(v);
+    let step = 0;
+    
+    const animate = () => {
+        if (window.highlightObjects) {
+            window.highlightObjects.forEach(obj => {
+                if (obj && obj.parent) {
+                    visualization3D.scene.remove(obj);
+                }
+            });
+        }
+        window.highlightObjects = [];
+        
+        if (step === 0) {
+            // Paso 1: Mostrar ángulo entre vectores
+            const time = (Date.now() - (window.animationStartTime || 0)) / 1000;
+            const progress = Math.min(time / 2, 1);
+            
+            const angleU = Math.atan2(scaledU[1] || 0, scaledU[0] || 0);
+            const angleV = Math.atan2(v[1] || 0, v[0] || 0);
+            const currentAngle = angleU + (angleV - angleU) * progress;
+            
+            // Arco animado
+            const segments = 32;
+            const radius = 0.8;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            
+            for (let i = 0; i <= segments * progress; i++) {
+                const t = i / segments;
+                const current = angleU + (angleV - angleU) * t;
+                vertices.push(
+                    radius * Math.cos(current),
+                    radius * Math.sin(current),
+                    0
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 4 });
+            const arc = new THREE.Line(geometry, material);
+            visualization3D.scene.add(arc);
+            window.highlightObjects.push(arc);
+            
+            const currentAngleDeg = (currentAngle * 180 / Math.PI).toFixed(1);
+            showCalculationText(`Ángulo θ = ${currentAngleDeg}°`);
+            
+            if (progress >= 1) {
+                step = 1;
+                window.animationStartTime = Date.now();
+            }
+        } else if (step === 1) {
+            // Paso 2: Mostrar producto escalar y normas
+            showCalculationText(`u⋅v = ${dotProduct.toFixed(4)}, ||u|| = ${normU.toFixed(4)}, ||v|| = ${normV.toFixed(4)}`);
+            
+            // Resaltar vectores
+            const uEnd = new THREE.Vector3(scaledU[0] || 0, scaledU[1] || 0, scaledU[2] || 0);
+            const vEnd = new THREE.Vector3(v[0] || 0, v[1] || 0, v[2] || 0);
+            
+            const pulse = Math.sin(Date.now() * 0.005) * 0.05 + 0.12;
+            const uSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0x6366f1, emissive: 0x6366f1, emissiveIntensity: 0.8 })
+            );
+            uSphere.position.copy(uEnd);
+            visualization3D.scene.add(uSphere);
+            window.highlightObjects.push(uSphere);
+            
+            const vSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0xec4899, emissive: 0xec4899, emissiveIntensity: 0.8 })
+            );
+            vSphere.position.copy(vEnd);
+            visualization3D.scene.add(vSphere);
+            window.highlightObjects.push(vSphere);
+            
+            if (Date.now() - window.animationStartTime > 2000) {
+                step = 2;
+                window.animationStartTime = Date.now();
+            }
+        } else {
+            // Paso 3: Mostrar fórmula completa y resultado
+            const angleU = Math.atan2(scaledU[1] || 0, scaledU[0] || 0);
+            const angleV = Math.atan2(v[1] || 0, v[0] || 0);
+            
+            // Arco completo del ángulo
+            const segments = 64;
+            const radius = 0.8;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const currentAngle = angleU + (angleV - angleU) * t;
+                vertices.push(
+                    radius * Math.cos(currentAngle),
+                    radius * Math.sin(currentAngle),
+                    0
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 4 });
+            const arc = new THREE.Line(geometry, material);
+            visualization3D.scene.add(arc);
+            window.highlightObjects.push(arc);
+            
+            showCalculationText(`cos(θ) = ${dotProduct.toFixed(4)} / (${normU.toFixed(4)} × ${normV.toFixed(4)}) = ${cosineSim.toFixed(4)}`);
+            
+            if (Date.now() - window.animationStartTime > 3000) {
+                step = 0;
+                window.animationStartTime = Date.now();
+            }
+        }
+        
+        visualization3D.render();
+        window.animationInterval = setTimeout(animate, 50);
+    };
+    
+    window.animationStartTime = Date.now();
+    animate();
+}
+
+/**
+ * Anima el cálculo de ortogonalidad
+ */
+function animateOrthogonality(u, v, scaledU, visualization3D) {
+    const dotProduct = calculator.dotProduct(scaledU, v);
+    const isOrtho = calculator.isOrthogonal(scaledU, v);
+    let step = 0;
+    
+    const animate = () => {
+        if (window.highlightObjects) {
+            window.highlightObjects.forEach(obj => {
+                if (obj && obj.parent) {
+                    visualization3D.scene.remove(obj);
+                }
+            });
+        }
+        window.highlightObjects = [];
+        
+        if (step === 0) {
+            // Paso 1: Mostrar producto escalar
+            const time = (Date.now() - (window.animationStartTime || 0)) / 1000;
+            const progress = Math.min(time / 2, 1);
+            
+            // Mostrar cálculo del producto escalar animado
+            const animatedDot = dotProduct * progress;
+            showCalculationText(`u⋅v = ${animatedDot.toFixed(6)}`);
+            
+            // Resaltar vectores
+            const uEnd = new THREE.Vector3(scaledU[0] || 0, scaledU[1] || 0, scaledU[2] || 0);
+            const vEnd = new THREE.Vector3(v[0] || 0, v[1] || 0, v[2] || 0);
+            
+            const pulse = Math.sin(time * 5) * 0.05 + 0.12;
+            const uSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0x6366f1, emissive: 0x6366f1, emissiveIntensity: 0.8 })
+            );
+            uSphere.position.copy(uEnd);
+            visualization3D.scene.add(uSphere);
+            window.highlightObjects.push(uSphere);
+            
+            const vSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(pulse, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0xec4899, emissive: 0xec4899, emissiveIntensity: 0.8 })
+            );
+            vSphere.position.copy(vEnd);
+            visualization3D.scene.add(vSphere);
+            window.highlightObjects.push(vSphere);
+            
+            if (progress >= 1) {
+                step = 1;
+                window.animationStartTime = Date.now();
+            }
+        } else {
+            // Paso 2: Mostrar verificación de ortogonalidad
+            const epsilon = 0.000001;
+            const angleU = Math.atan2(scaledU[1] || 0, scaledU[0] || 0);
+            const angleV = Math.atan2(v[1] || 0, v[0] || 0);
+            
+            if (isOrtho) {
+                // Mostrar indicador de ángulo recto animado
+                const time = (Date.now() - window.animationStartTime) / 1000;
+                const progress = Math.min(time / 1.5, 1);
+                const midAngle = angleU + (angleV - angleU) * 0.5;
+                const radius = 0.6 * progress;
+                
+                // Indicador de ángulo recto
+                const indicatorGeometry = new THREE.BufferGeometry();
+                const indicatorVertices = [
+                    radius * Math.cos(angleU), radius * Math.sin(angleU), 0,
+                    radius * Math.cos(midAngle), radius * Math.sin(midAngle), 0,
+                    radius * Math.cos(angleV), radius * Math.sin(angleV), 0
+                ];
+                indicatorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(indicatorVertices, 3));
+                const indicatorMaterial = new THREE.LineBasicMaterial({ 
+                    color: 0x10b981, 
+                    linewidth: 4 
+                });
+                const indicator = new THREE.LineLoop(indicatorGeometry, indicatorMaterial);
+                visualization3D.scene.add(indicator);
+                window.highlightObjects.push(indicator);
+                
+                // Arco de 90 grados
+                const arcGeometry = new THREE.BufferGeometry();
+                const arcVertices = [];
+                for (let i = 0; i <= 16; i++) {
+                    const t = i / 16;
+                    const currentAngle = angleU + (angleV - angleU) * t;
+                    arcVertices.push(
+                        radius * Math.cos(currentAngle),
+                        radius * Math.sin(currentAngle),
+                        0
+                    );
+                }
+                arcGeometry.setAttribute('position', new THREE.Float32BufferAttribute(arcVertices, 3));
+                const arcMaterial = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 3 });
+                const arc = new THREE.Line(arcGeometry, arcMaterial);
+                visualization3D.scene.add(arc);
+                window.highlightObjects.push(arc);
+            }
+            
+            showCalculationText(`|u⋅v| = ${Math.abs(dotProduct).toFixed(6)} ${isOrtho ? '<' : '≥'} ${epsilon} → u⊥v: ${isOrtho ? 'Sí' : 'No'}`);
+            
+            if (Date.now() - window.animationStartTime > 3000) {
+                step = 0;
+                window.animationStartTime = Date.now();
+            }
+        }
+        
+        visualization3D.render();
+        window.animationInterval = setTimeout(animate, 50);
+    };
+    
+    window.animationStartTime = Date.now();
+    animate();
+}
+
+/**
+ * Muestra texto con el cálculo en la escena 3D
+ */
+function showCalculationText(text) {
+    if (!window.visualization3D) return;
+    const visualization3D = window.visualization3D;
+    
+    // Limpiar texto anterior
+    if (window.calculationText) {
+        visualization3D.scene.remove(window.calculationText);
+    }
+    
+    // Crear canvas para el texto
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 512;
+    canvas.height = 128;
+    
+    context.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    
+    context.fillStyle = '#10b981';
+    context.font = 'bold 32px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(text, canvas.width / 2, canvas.height / 2);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(2, 0.5, 1);
+    sprite.position.set(0, 2, 0);
+    
+    visualization3D.scene.add(sprite);
+    window.calculationText = sprite;
 }
 

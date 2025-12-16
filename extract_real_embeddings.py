@@ -11,6 +11,7 @@ import json
 import sys
 try:
     import gensim
+    
     import gensim.downloader as api
     import numpy as np
 except ImportError:
