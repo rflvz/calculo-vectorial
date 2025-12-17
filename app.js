@@ -72,6 +72,23 @@ class VectorCalculator {
     }
 
     /**
+     * Calcula el producto exterior (tensorial) de dos vectores
+     * @param {number[]} u - Vector u de m dimensiones
+     * @param {number[]} v - Vector v de n dimensiones
+     * @returns {number[][]} Matriz m×n donde cada elemento (i,j) es u[i] * v[j]
+     */
+    outerProduct(u, v) {
+        const result = [];
+        for (let i = 0; i < u.length; i++) {
+            result[i] = [];
+            for (let j = 0; j < v.length; j++) {
+                result[i][j] = u[i] * v[j];
+            }
+        }
+        return result;
+    }
+
+    /**
      * Escala un vector por un factor
      * @param {number[]} vector - Vector a escalar
      * @param {number} scale - Factor de escalado
@@ -262,6 +279,12 @@ function initializeElements() {
     elements.cosineSimilarity = document.getElementById('cosine-similarity');
     elements.cosineInterpretation = document.getElementById('cosine-interpretation');
     elements.orthogonality = document.getElementById('orthogonality');
+    elements.outerProduct = document.getElementById('outer-product');
+    
+    // Verificar que el elemento existe
+    if (!elements.outerProduct) {
+        console.warn('Elemento outer-product no encontrado en el DOM durante la inicialización');
+    }
     elements.recommendationContext = document.getElementById('recommendation-context');
     elements.nlpContext = document.getElementById('nlp-context');
     elements.visualizationInfo = document.getElementById('visualization-info');
@@ -480,7 +503,7 @@ function updateAll() {
         const scaledU = calculator.scale(appState.vectorU, appState.scale);
 
         // Calcular resultados con manejo de errores
-        let dotProduct, normU, normV, cosineSim, isOrtho, projection, angle;
+        let dotProduct, normU, normV, cosineSim, isOrtho, projection, angle, outerProd;
         
         try {
             dotProduct = calculator.dotProduct(scaledU, appState.vectorV);
@@ -490,6 +513,11 @@ function updateAll() {
             isOrtho = calculator.isOrthogonal(scaledU, appState.vectorV);
             projection = calculator.orthogonalProjection(scaledU, appState.vectorV);
             angle = calculator.angle(scaledU, appState.vectorV);
+            outerProd = calculator.outerProduct(scaledU, appState.vectorV);
+            // Debug: verificar que el producto exterior se calcula correctamente
+            if (outerProd && outerProd.length > 0) {
+                console.log('Producto exterior calculado:', outerProd.length + '×' + outerProd[0].length, outerProd);
+            }
         } catch (error) {
             console.error('Error en cálculos:', error);
             // Valores por defecto en caso de error
@@ -500,6 +528,7 @@ function updateAll() {
             isOrtho = false;
             projection = new Array(appState.dimension).fill(0);
             angle = 0;
+            outerProd = [];
         }
 
         // Validar resultados antes de mostrar
@@ -512,7 +541,7 @@ function updateAll() {
         if (!isFinite(angle)) angle = 0;
 
         // Actualizar resultados numéricos
-        updateNumericResults(dotProduct, normU, normV, cosineSim, isOrtho);
+        updateNumericResults(dotProduct, normU, normV, cosineSim, isOrtho, outerProd);
 
         // Actualizar visualización
         if (typeof updateVisualization === 'function') {
@@ -530,7 +559,7 @@ function updateAll() {
         updateVisualizationInfo(angle, cosineSim, isOrtho);
 
         // Actualizar cálculo paso a paso
-        updateStepByStepCalculation(scaledU, appState.vectorV, dotProduct, normU, normV, cosineSim, isOrtho);
+        updateStepByStepCalculation(scaledU, appState.vectorV, dotProduct, normU, normV, cosineSim, isOrtho, outerProd);
 
     } catch (error) {
         console.error('Error en updateAll:', error);
@@ -545,7 +574,7 @@ function updateAll() {
 /**
  * Actualiza los resultados numéricos en el DOM
  */
-function updateNumericResults(dotProduct, normU, normV, cosineSim, isOrtho) {
+function updateNumericResults(dotProduct, normU, normV, cosineSim, isOrtho, outerProd) {
     elements.dotProduct.textContent = dotProduct.toFixed(4);
     elements.normU.textContent = normU.toFixed(4);
     elements.normV.textContent = normV.toFixed(4);
@@ -583,6 +612,41 @@ function updateNumericResults(dotProduct, normU, normV, cosineSim, isOrtho) {
     // Ortogonalidad
     elements.orthogonality.textContent = isOrtho ? 'Sí ✓' : 'No ✗';
     elements.orthogonality.className = isOrtho ? 'result-value orthogonal-yes' : 'result-value orthogonal-no';
+
+    // Producto Exterior - mostrar como matriz
+    if (!elements.outerProduct) {
+        console.warn('Elemento outer-product no encontrado en el DOM');
+        return;
+    }
+    
+    if (outerProd && Array.isArray(outerProd) && outerProd.length > 0 && Array.isArray(outerProd[0]) && outerProd[0].length > 0) {
+        try {
+            let matrixHtml = '<div class="matrix-container">';
+            matrixHtml += '<div class="matrix-label">Matriz ' + outerProd.length + '×' + outerProd[0].length + ':</div>';
+            matrixHtml += '<table class="matrix-table">';
+            for (let i = 0; i < outerProd.length; i++) {
+                matrixHtml += '<tr>';
+                for (let j = 0; j < outerProd[i].length; j++) {
+                    const value = outerProd[i][j];
+                    if (typeof value === 'number' && isFinite(value)) {
+                        matrixHtml += '<td>' + value.toFixed(3) + '</td>';
+                    } else {
+                        matrixHtml += '<td>0.000</td>';
+                    }
+                }
+                matrixHtml += '</tr>';
+            }
+            matrixHtml += '</table></div>';
+            elements.outerProduct.innerHTML = matrixHtml;
+            console.log('Matriz del producto exterior renderizada correctamente');
+        } catch (error) {
+            console.error('Error al renderizar matriz del producto exterior:', error, outerProd);
+            elements.outerProduct.textContent = 'Error al calcular';
+        }
+    } else {
+        console.log('Producto exterior no válido o vacío:', outerProd);
+        elements.outerProduct.textContent = '-';
+    }
 }
 
 /**
@@ -796,7 +860,7 @@ function generateExampleButtons() {
 /**
  * Actualiza la sección de cálculo paso a paso
  */
-function updateStepByStepCalculation(u, v, dotProduct, normU, normV, cosineSim, isOrtho) {
+function updateStepByStepCalculation(u, v, dotProduct, normU, normV, cosineSim, isOrtho, outerProd) {
     if (!elements.stepByStepCalculation) return;
 
     const dim = u.length;
@@ -949,6 +1013,57 @@ function updateStepByStepCalculation(u, v, dotProduct, normU, normV, cosineSim, 
     html += '<span>Ver Animación 3D</span>';
     html += '</button>';
     html += '</div>';
+
+    // 6. Producto Exterior
+    if (outerProd && outerProd.length > 0) {
+        html += '<div class="calculation-step">';
+        html += '<h3>6. Producto Exterior (u⊗v)</h3>';
+        html += '<div class="step-formula">u⊗v = [uᵢ × vⱼ] donde cada elemento (i,j) = uᵢ × vⱼ</div>';
+        
+        html += '<div class="step-breakdown">';
+        html += '<div class="step-breakdown-item">';
+        html += '<span class="step-label">Dimensión de la matriz:</span>';
+        html += '<span class="step-value">' + outerProd.length + ' × ' + outerProd[0].length + '</span>';
+        html += '</div>';
+        html += '</div>';
+        
+        // Mostrar algunos ejemplos de cálculo
+        const maxExamples = Math.min(6, outerProd.length * outerProd[0].length);
+        let exampleCount = 0;
+        html += '<div class="step-breakdown" style="margin-top: 12px;">';
+        html += '<div class="step-breakdown-item"><span class="step-label">Ejemplos de cálculo:</span></div>';
+        for (let i = 0; i < outerProd.length && exampleCount < maxExamples; i++) {
+            for (let j = 0; j < outerProd[i].length && exampleCount < maxExamples; j++) {
+                html += '<div class="step-breakdown-item">';
+                html += '<span class="step-label">Elemento (' + (i + 1) + ',' + (j + 1) + '):</span>';
+                html += '<span class="step-value">u' + (i + 1) + ' × v' + (j + 1) + ' = ' + u[i].toFixed(4) + ' × ' + v[j].toFixed(4) + ' = ' + outerProd[i][j].toFixed(4) + '</span>';
+                html += '</div>';
+                exampleCount++;
+            }
+        }
+        html += '</div>';
+        
+        // Mostrar matriz completa
+        html += '<div class="step-result" style="margin-top: 16px;">Matriz resultante:</div>';
+        html += '<div class="matrix-container" style="margin: 12px 0;">';
+        html += '<table class="matrix-table">';
+        for (let i = 0; i < outerProd.length; i++) {
+            html += '<tr>';
+            for (let j = 0; j < outerProd[i].length; j++) {
+                html += '<td>' + outerProd[i][j].toFixed(3) + '</td>';
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        
+        html += '<div class="step-explanation">';
+        html += 'El producto exterior (o producto tensorial) de dos vectores produce una matriz donde cada elemento (i,j) es el producto de la componente i-ésima del primer vector por la componente j-ésima del segundo vector. ';
+        html += 'A diferencia del producto escalar que produce un escalar, el producto exterior produce una matriz que captura todas las interacciones entre las componentes de ambos vectores. ';
+        html += 'Este concepto es fundamental en álgebra tensorial y tiene aplicaciones en machine learning, especialmente en redes neuronales y procesamiento de señales.';
+        html += '</div>';
+        html += '</div>';
+    }
 
     elements.stepByStepCalculation.innerHTML = html;
 }

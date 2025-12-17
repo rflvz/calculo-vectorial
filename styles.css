@@ -518,6 +518,86 @@ select option {
     font-size: 0.95em;
 }
 
+/* Estilos para matriz del producto exterior */
+.matrix-container {
+    margin: 16px 0;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.matrix-label {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.matrix-table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.matrix-table td {
+    padding: 10px 16px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95em;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    transition: var(--transition);
+    min-width: 60px;
+}
+
+.matrix-table td:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+    z-index: 1;
+    position: relative;
+}
+
+.matrix-table tr:first-child td {
+    border-top: 2px solid var(--primary-color);
+}
+
+.matrix-table tr:last-child td {
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.matrix-table td:first-child {
+    border-left: 2px solid var(--primary-color);
+}
+
+.matrix-table td:last-child {
+    border-right: 2px solid var(--primary-color);
+}
+
+.outer-product-matrix {
+    display: block;
+    width: 100%;
+    min-height: 50px;
+}
+
+.outer-product-matrix .matrix-container {
+    width: 100%;
+    max-width: 100%;
+}
+
+.outer-product-matrix .result-value {
+    font-weight: normal;
+    font-size: inherit;
+    color: inherit;
+    font-family: inherit;
+}
+
 .result-value {
     font-weight: 700;
     font-size: 1.15em;
